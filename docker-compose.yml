@@ -1,0 +1,68 @@
+version: '3.9'
+
+services:
+
+  # PHP Service
+  php-fpm:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - mariadb
+
+  # Nginx Service
+  webserver:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - '${APP_PORT}:80'
+    volumes:
+      - ./:/var/www/html
+      - .docker/nginx.conf:/etc/nginx/conf.d/default.conf
+
+  # API Service
+  api:
+    restart: always
+    build: .
+    ports:
+      - '${MIX_API_PORT}:80'
+    depends_on:
+      - webserver
+      - php-fpm
+    volumes:
+      - ./:/var/www/html
+
+  # Frontend Serivce
+
+  # Backend Service
+
+  # Mariadb Service
+  mariadb:
+    image: 'mariadb:10'
+    restart: unless-stopped
+    ports:
+        - '${DB_PORT}:3306'
+    environment:
+        MYSQL_DATABASE: ${DB_DATABASE}
+        MYSQL_USER: ${DB_USERNAME}
+        MYSQL_PASSWORD: ${DB_PASSWORD}
+        MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+        - ./storage/db:/var/lib/mysql/
+
+  # Phpmyadmin Service
+  adminer:
+    image: phpmyadmin
+    restart: always
+    depends_on:
+      - mariadb
+    ports:
+      - '${ADMINER_PORT}:80'
+    environment:
+      PMA_HOST: mariadb
+
+

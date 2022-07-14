@@ -142,7 +142,7 @@ RUN rm -r /var/lib/apt/lists/*
 
 RUN usermod -u 1000 www-data
 
-WORKDIR /var/www
+WORKDIR /var/www/html/public/
 
 COPY ./docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
@@ -151,3 +151,4 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 
 EXPOSE 9000
 CMD ["php-fpm"]
+#CMD ["php-fpm", "artisan", "serve"]

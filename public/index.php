@@ -1,4 +1,9 @@
 <?php
+$uri = urldecode(
+    parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)
+);
+var_dump($uri);
+echo 'test';exit;
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;

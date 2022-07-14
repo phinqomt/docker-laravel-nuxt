@@ -7,8 +7,9 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    restart: unless-stopped
-    working_dir: /var/www/html
+    restart: always
+    #tty: true
+    #working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
     depends_on:
@@ -16,43 +17,64 @@ services:
 
   # Nginx Service
   webserver:
-    image: nginx:alpine
-    restart: unless-stopped
+    #image: nginx:alpine
+    image: nginx
+    restart: always
+    tty: true
     ports:
       - '${APP_PORT}:80'
+      - '${MIX_API_PORT}:81'
     volumes:
       - ./:/var/www/html
       - .docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    links:
+      - php-fpm
+      - frontend
+      - backend
 
   # API Service
   api:
     restart: always
     build: .
-    ports:
-      - '${MIX_API_PORT}:80'
+    tty: true
+    # ports:
+    #   - '${MIX_API_PORT}:80'
     depends_on:
       - webserver
-      - php-fpm
     volumes:
       - ./:/var/www/html
 
   # Frontend Serivce
+  frontend:
+    restart: always
+    build: ./frontend
+    command: "npm run dev"
+    # tty: true
+    # ports:
+    #   - '${MIX_FRONTEND_PORT}:8881'
 
   # Backend Service
+  backend:
+    restart: always
+    build: ./backend
+    command: "npm run dev"
+    # tty: true
+    # ports:
+    #   - '${MIX_BACKEND_PORT}:8882'
 
   # Mariadb Service
   mariadb:
     image: 'mariadb:10'
-    restart: unless-stopped
+    restart: always
     ports:
-        - '${DB_PORT}:3306'
+      - '${DB_PORT}:3306'
     environment:
-        MYSQL_DATABASE: ${DB_DATABASE}
-        MYSQL_USER: ${DB_USERNAME}
-        MYSQL_PASSWORD: ${DB_PASSWORD}
-        MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
-        - ./storage/db:/var/lib/mysql/
+      - ./storage/db:/var/lib/mysql/
 
   # Phpmyadmin Service
   adminer:
